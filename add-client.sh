@@ -33,10 +33,6 @@ CLIENT_PRESHARED_KEY=$( wg genpsk )
 CLIENT_PRIVKEY=$( wg genkey )
 CLIENT_PUBLIC_KEY=$( echo $CLIENT_PRIVKEY | wg pubkey )
 
-#echo $CLIENT_PRESHARED_KEY > ./"$USERNAME$PRESHARED_KEY"
-#echo $CLIENT_PRIVKEY > ./"$USERNAME$PRIV_KEY"
-#echo $CLIENT_PUBLIC_KEY > ./"$USERNAME$PUB_KEY"
-
 read SERVER_PUBLIC_KEY < /etc/wireguard/server_public.key
 
 # We get the following client IP address
@@ -72,8 +68,7 @@ AllowedIPs = $CLIENT_IP
 EOF
 
 # Restart Wireguard
-systemctl stop wg-quick@wg0
-systemctl start wg-quick@wg0
+systemctl restart wg-quick@wg0
 
 # Show QR config to display
 qrencode -t ansiutf8 < ./$USERNAME.conf
@@ -81,6 +76,3 @@ qrencode -t ansiutf8 < ./$USERNAME.conf
 # Show config file
 echo "# Display $USERNAME.conf"
 cat ./$USERNAME.conf
-
-# Save QR config to png file
-#qrencode -t png -o ./$USERNAME.png < ./$USERNAME.conf

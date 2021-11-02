@@ -1,14 +1,25 @@
 #!/bin/bash
 
-apt install software-properties-common -y
-add-apt-repository ppa:wireguard/wireguard -y
-apt update
-apt install wireguard-dkms wireguard-tools qrencode -y
+if [ -n "$(command -v yum)" ]
+then
+  yum upgrade -y
+  amazon-linux-extras install -y epel
+  curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
+  yum clean all
+  yum install -y wireguard-dkms wireguard-tools qrencode
 
+  sysctl net.ipv4.conf.all.forwarding=1 | tee -a /etc/sysctl.d/forwarding.conf
+elif [ -n "$(command -v apt-get)" ]
+then
+  apt install software-properties-common -y
+  add-apt-repository ppa:wireguard/wireguard -y
+  apt update
+  apt install wireguard-dkms wireguard-tools qrencode -y
 
-NET_FORWARD="net.ipv4.ip_forward=1"
-sysctl -w  ${NET_FORWARD}
-sed -i "s:#${NET_FORWARD}:${NET_FORWARD}:" /etc/sysctl.conf
+  NET_FORWARD="net.ipv4.ip_forward=1"
+  sysctl -w  ${NET_FORWARD}
+  sed -i "s:#${NET_FORWARD}:${NET_FORWARD}:" /etc/sysctl.conf
+fi
 
 cd /etc/wireguard
 
@@ -20,7 +31,7 @@ SERVER_PUBKEY=$( echo $SERVER_PRIVKEY | wg pubkey )
 echo $SERVER_PUBKEY > ./server_public.key
 echo $SERVER_PRIVKEY > ./server_private.key
 
-read -p "Enter the endpoint (external ip and port) in format [ipv4:port] (e.g. 4.3.2.1:54321):" ENDPOINT
+read -p "Enter the endpoint (external ip and port) in format [ipv4:port] (e.g. 4.3.2.1:54321): " ENDPOINT
 if [ -z $ENDPOINT ]
 then
 echo "[#]Empty endpoint. Exit"
